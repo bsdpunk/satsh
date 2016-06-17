@@ -1,0 +1,3 @@
+[console_scripts]
+satsh = satsh.satsh:cli
+

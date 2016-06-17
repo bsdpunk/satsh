@@ -116,8 +116,8 @@ def get_sat_key(config):
     key={}
     key["client"] = xmlrpclib.Server(SATELLITE_URL, verbose=0,context=ssl._create_unverified_context())
 
-    key["key"]=key = key["client"].auth.login(username, password)
-    pprint(key)
+    key["key"]=key["client"].auth.login(username, password)
+    #pprint(*key)
     #headers = {'content-type': 'application/json'}
     try:
         #print(password)
@@ -252,7 +252,7 @@ def cli():
                     cli = cli.replace("-", "_")
                     l_class = eval(l_class)
                     result = getattr(l_class, cli)(api_key)
-                    print(result)
+                    pprint(result)
                     valid = 1
                elif cli in HELPER:
                     if cli == "quit" or cli == "exit":

@@ -37,23 +37,19 @@ prompt_r = 0
 
 
 
-SATELLITE_URL = "https://t2rarhs701/rhn/rpc/api"
 #For tab completion
 COMMANDS = ['list-users','help', 'quit']
 
 #For X number of arguements
-ONE = ['list-users','list-domains', 'ip-list', 'list-servers', 'avail-datacenters', 'avail-distributions', 'avail-plans', 'avail-stackscripts', 'nodebal-list']
-TWO = ['ip-list', 'nodebal-node-list', 'nodebal-config-list', 'nodebal-create', 'linode-shutdown','domain-resource-list']
-THREE = ['linode-create','domain-resource-list']
+ONE = ['list-users']
+TWO = ['domain-resource-list']
+THREE = ['domain-resource-list']
 FOUR = ['domain-resource-create']
 FIVE = ['domain-resource-create']
 SIX = ['linode-disk-dist']
 #For what class
-DOMAIN= ['domain-resource-create','list-domains','domain-resource-list']
+DOMAIN= ['domain-resource-create']
 USER= ['list-users']
-SA = ['list-images','list-servers','ip-list','linode-create', 'linode-shutdown','linode-disk-dist']
-LU = ['avail-datacenters', 'avail-distributions', 'avail-plans', 'avail-stackscripts']
-NB = ['nodebal-list', 'nodebal-node-list', 'nodebal-config-list', 'nodebal-create']
 HELPER = ['help', 'quit', 'exit']
 
 
@@ -93,7 +89,9 @@ if os.path.isfile(config_file):
 else:
     username = raw_input("Username:")
     password = getpass.getpass("Password:")
-    config= {"default":[{"username":username,"password":password}]}
+
+    sat_url = "https://t2rarhs701/rhn/rpc/api"
+    config= {"default":[{"username":username,"password":password,"sat_url":sat_url}]}
     
     config_file_new = open(config_file, "w")
     config_f = str(config)
@@ -113,14 +111,12 @@ def get_sat_key(config):
     #global username
     username = config["default"][0]["username"]
     password = config["default"][0]["password"]
+    sat_url = config["default"][0]["sat_url"]
     key={}
-    key["client"] = xmlrpclib.Server(SATELLITE_URL, verbose=0,context=ssl._create_unverified_context())
+    key["client"] = xmlrpclib.Server(sat_url, verbose=0,context=ssl._create_unverified_context())
 
     key["key"]=key["client"].auth.login(username, password)
-    #pprint(*key)
-    #headers = {'content-type': 'application/json'}
     try:
-        #print(password)
         return(key)
     except KeyError:
         print("Bad Credentials!")
@@ -136,10 +132,7 @@ def cli():
         valid = 0
 
         signal.signal(signal.SIGINT, Exit_gracefully)
-#        except EOFError:
-#            bye()
         try:
-            #readline.parse_and_bind("tab: complete")
             if 'libedit' in readline.__doc__:
                 readline.parse_and_bind("bind ^I rl_complete")
             else:
@@ -153,28 +146,19 @@ def cli():
         if hist_toggle == 1:
             hfile.write(cli + '\n')
         if 'key' in locals():
-            #print("tool")
             pass
         else:
             key = get_sat_key(config)    
-            #print("tool")
 
 #This is not just a horrible way to take the commands and arguements, it's also shitty way to sanatize the input for one specific scenario
 
 #I miss perl :(
 
 
-#Apparently argparse is the solution I'm looking for,I put a simple argparse example in TODO.md        
         cli = re.sub('  ',' ', cli.rstrip())
             
 
-#        if len(cli.split(' ')) ==3:
-#            command,arg_one,arg_two = cli.split()
-#            if command == "linode-create":
-#                api_key = get_linode_key(config)
-#                print(servers_action.linode_create(api_key,arg_one,arg_two))
-#                valid = 1
- 
+
 
 ##########################################################################################
 # This starts the single satsh commands
@@ -186,13 +170,7 @@ def cli():
 
         if command in DOMAIN:
             l_class = 'domain'
-        elif command in SA:
-            l_class = 'servers_action'
-        elif command in LU:
-            l_class = 'lin_utility'
-        elif command in NB:
-            l_class = 'node_balance'
-        elif command in USER:
+       elif command in USER:
             l_class = 'user'
         else:
             l_class = ''       
@@ -275,16 +253,7 @@ def help_menu():
     help_var = """
 (required) <optional>
 
-list-servers : lists your linode servers
-linode-create (DatacenterID) (PlanID) <PaymentTerm>: create Linode
-ip-list <linode_id> <IPaddress> : return JSON information about ip address and server 
-avail-datacenters : lists available centers
-avail-distributions : lists available distribution centers
-quit : exit the shell
-nodebal-list : get list of lode balancers    
-nodebal-config-list (id): get lode balancer specifics using id from list
-nodebal-node-list (config id): get node list of a balancer
-nodebal-create (DatacenterID): create node balancer
+list-users : lists satellite users
 help : show commands and usage
 """
     return(help_var)
